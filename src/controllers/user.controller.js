@@ -1,19 +1,19 @@
+const userModel = require('../models/user.model');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 module.exports.signup = (req, res) => {
+	if (!req.body.fullName) {
+		return res.status(403).send({
+			error: true,
+			message: 'Full name is required'
+		});
+	}
+
 	if (!req.body.email) {
 		return res.status(403).send({
 			error: true,
 			message: 'Email is required'
-		});
-	}
-
-	if (
-		!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-			req.body.email
-		)
-	) {
-		return res.status(403).send({
-			error: true,
-			message: 'Email is invalid'
 		});
 	}
 
@@ -24,10 +24,17 @@ module.exports.signup = (req, res) => {
 		});
 	}
 
-	if (!req.body.userType) {
+	if (!req.body.companyName) {
 		return res.status(403).send({
 			error: true,
-			message: 'User type is required'
+			message: 'Company name is required'
+		});
+	}
+
+	if (!req.body.phoneNumber) {
+		return res.status(403).send({
+			error: true,
+			message: 'Phone number is required'
 		});
 	}
 
@@ -53,9 +60,12 @@ module.exports.signup = (req, res) => {
 					});
 				} else {
 					const user = new userModel({
+						fullName: req.body.fullName,
 						email: req.body.email,
 						password: hash,
-						userType: req.body.userType ? req.body.userType : 'jobSeeker'
+						companyName: req.body.companyName,
+						phoneNumber: req.body.phoneNumber,
+						userType: req.body.userType ? req.body.userType : 'employer'
 					});
 
 					user.save((err, userSaved) => {
@@ -66,42 +76,75 @@ module.exports.signup = (req, res) => {
 								data: err
 							});
 						} else {
-							// Email registration
-							const randomCode = Math.random().toString(36).substring(7);
-
-							fs.readFile(
-								path.join(__dirname, '..', 'mailer', 'samples', 'signup.html'),
-								(err, signupHtml) => {
-									mailer.Email(
-										req.body.email,
-										'Welcome to Ketoadle',
-										signupHtml
-											.toString()
-											.replace('#activationCode', randomCode)
-											.replace('#activationCodeText', randomCode)
-											.replace('#userEmail', req.body.email)
-									);
-								}
-							);
-
-							// Date calculation
-							let currentDate = new Date();
-							currentDate.setDate(currentDate.getDate() + 1);
-
-							userModel.findOneAndUpdate(
-								{ email: req.body.email },
-								{ activationCode: randomCode, activationCodeTime: currentDate },
-								(err, userActivationCode) => {
-									if (err) {
-										console.log('Error while saving activation code user');
-									}
-								}
-							);
-
 							return res.status(201).send({
 								error: false,
 								message: 'User created successfully, please check your email address'
 							});
+						}
+					});
+				}
+			});
+		}
+	});
+};
+
+module.exports.signin = (req, res) => {
+	if (!req.body.email) {
+		return res.status(403).send({
+			error: true,
+			message: 'Email is required'
+		});
+	}
+
+	if (!req.body.password) {
+		return res.status(403).send({
+			error: true,
+			message: 'Password is required'
+		});
+	}
+
+	userModel.findOne({ email: req.body.email }, (err, userFound) => {
+		if (err) {
+			return res.status(500).send({
+				error: true,
+				message: 'Error while finding user',
+				data: err
+			});
+		} else if (!userFound) {
+			return res.status(403).send({
+				error: true,
+				message: 'No user regstered with this email'
+			});
+		} else {
+			// if (userFound.status !== 'active') {
+			// 	return res.status(401).send({
+			// 		error: true,
+			// 		message: 'Please activate your account before login'
+			// 	});
+			// }
+
+			bcrypt.compare(req.body.password, userFound.password, function(err, result) {
+				if (err) {
+					return res.status(500).send({
+						error: true,
+						message: 'Error while comparing password',
+						data: err
+					});
+				} else if (!result) {
+					return res.status(401).send({
+						error: true,
+						message: 'Unauthorised Access'
+					});
+				} else {
+					// generate token
+					var token = jwt.sign({ _id: userFound._id }, 'kleverSecret');
+					return res.status(200).send({
+						error: false,
+						message: 'Logged in successfully.',
+						data: {
+							token: token,
+							userType: userFound.userType,
+							fullName: userFound.fullName
 						}
 					});
 				}
