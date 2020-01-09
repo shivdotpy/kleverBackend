@@ -1,6 +1,8 @@
 const userModel = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const base64Img = require('base64-img');
+const randomstring = require('randomstring');
 
 module.exports.signup = (req, res) => {
 	if (!req.body.fullName) {
@@ -150,5 +152,35 @@ module.exports.signin = (req, res) => {
 				}
 			});
 		}
+	});
+};
+
+module.exports.updateUserImage = (req, res) => {
+	if (!req.body.image) {
+		return res.status(403).send({
+			error: true,
+			message: 'image is required'
+		});
+	}
+
+	// random hash
+	const randomString = randomstring.generate(10);
+
+	// handle image
+	let fileName = '';
+	const filepath = base64Img.imgSync(req.body.image, 'public', randomString);
+	if (filepath.includes('/')) {
+		fileName = filepath.split('/')[1];
+	} else {
+		fileName = filepath.split('\\')[1];
+	}
+
+	userModel.findById(req.userId, (err, userFound) => {
+		userFound.image = `http://${req.headers.host}/${fileName}`;
+		userFound.save();
+		return res.status(200).send({
+			error: false,
+			message: 'Image updated successfully'
+		});
 	});
 };
