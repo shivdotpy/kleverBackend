@@ -11,4 +11,8 @@ router.use(authMiddleware)
 
 router.put('/updateUserImage', userController.updateUserImage);
 
+router.get('/getUserImage', userController.getUserImage)
+
+router.put('/updateFreelancerProfile', userController.updateFreelancerProfile)
+
 module.exports = router;

@@ -184,3 +184,39 @@ module.exports.updateUserImage = (req, res) => {
 		});
 	});
 };
+
+module.exports.getUserImage = (req, res) => {
+	userModel.findById(req.userId, (err, userFound) => {
+		return res.status(200).send({
+			error: false,
+			message: 'User image',
+			data: userFound.image
+		})
+	})
+};
+
+module.exports.updateFreelancerProfile = (req, res) => {
+	const body = {
+		fullName: req.body.fullName,
+		skills: req.body.skills,
+		title: req.body.title,
+		shortDescription: req.body.shortDescription,
+		description: req.body.description,
+		availability: req.body.availability,
+		rate: req.body.rate,
+
+	}
+	userModel.findByIdAndUpdate(req.userId, body, (err, userUpdated) => {
+		if (err) {
+			return res.status(500).send({
+				error: true,
+				message: 'Error while updating user',
+				data: err
+			})
+		}
+		return res.status(200).send({
+			error: true,
+			message: 'User updated successfully'
+		})
+	})
+}
