@@ -241,3 +241,38 @@ module.exports.getFreelancerProfile = (req, res) => {
 		}
 	);
 };
+
+module.exports.getFreelancers = (req, res) => {
+	userModel.find({ userType: 'freelancer' }, { password: 0 }, (err, freelancersFound) => {
+		if (err) {
+			return res.status(500).send({
+				error: true,
+				message: 'Error while finding freelancers',
+				data: err
+			});
+		}
+
+		return res.status(200).send({
+			error: false,
+			data: freelancersFound
+		});
+	});
+};
+
+module.exports.getFreelancerDetail = (req, res) => {
+	userModel.findById(req.params.id, { password: 0 }, (err, freelancerFound) => {
+		if (err) {
+			return res.status(500).send({
+				error: true,
+				message: 'Error while finding freelancer',
+				data: err
+			});
+		}
+
+		return res.status(200).send({
+			error: false,
+			message: 'Freelancer detail',
+			data: freelancerFound
+		});
+	});
+};
