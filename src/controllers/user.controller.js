@@ -221,14 +221,6 @@ module.exports.updateFreelancerProfile = (req, res) => {
 };
 
 module.exports.getFreelancerProfile = (req, res) => {
-	// fullName: req.body.fullName,
-	// 	skills: req.body.skills,
-	// 	title: req.body.title,
-	// 	shortDescription: req.body.shortDescription,
-	// 	description: req.body.description,
-	// 	availability: req.body.availability,
-	// 	rate: req.body.rate,
-
 	userModel.findById(
 		req.userId,
 		{ fullName: 1, skills: 1, title: 1, shortDescription: 1, description: 1, availability: 1, rate: 1 },
