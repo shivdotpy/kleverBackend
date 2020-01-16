@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const PORT = process.env.PORT || 5000;
 
 const userRoutes = require('./src/routes/user.routes');
+const projectRoutes = require('./src/routes/project.routes')
 
 app.use(cors());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
 	res.send('Klever API is working');
 });
 
-app.use('/api/user/', userRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/project', projectRoutes);
 
 http.listen(PORT);
