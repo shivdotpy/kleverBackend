@@ -10,7 +10,8 @@ const projectSchema = mongoose.Schema(
         location: String,
         description: String,
         status: {type: String, default: 'pending'},
-		freelancer: { type: mongoose.Schema.Types.ObjectId, ref: 'user' }
+		freelancer: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+		user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' }
 	},
 	{
 		timestamps: true
